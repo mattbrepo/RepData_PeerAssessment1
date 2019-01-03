@@ -5,6 +5,14 @@ output:
     keep_md: true
 ---
 
+First of all let's load the needed libraries and set the options' default:
+
+```{r}
+library(tidyr)
+library(knitr)
+
+opts_chunk$set(echo = TRUE)
+```
 
 ## Loading and preprocessing the data
 
@@ -26,7 +34,7 @@ csv_file <- "activity.csv"
 csv_data <- read.csv(file.path(data_folder, csv_file), header = TRUE, sep = ",")
 ```
 
-change date column:
+change date column format:
 
 ```{r}
 csv_data$date <- as.Date(csv_data$date, "%Y-%m-%d")
@@ -40,13 +48,6 @@ For this part of the assignment, we can ignore the missing values in the dataset
 csv_data2 <- csv_data[!is.na(csv_data$steps),]
 ```
 
-and if we tranform date into a factor we won't miss any day that doesn't have data:
-
-```{r}
-#%%% csv_data2$date <- factor(csv_data2$date)
-#%%% csv_data2$steps[is.na(csv_data2$steps)] <- 0
-```
-
 let's group the steps by day and calculate the total number of steps taken per day:
 
 ```{r}
@@ -57,21 +58,37 @@ head(steps_day)
 Here's the histogram of the total number of steps taken each day:
 
 ```{r}
-hist(steps_day, breaks = 10)
+hist(steps_day, xlab = "Steps taken each day", main = "Total number of steps taken each day")
 ```
 
-The mean and median of the total number of steps taken per day is:
+The mean and median of the total number of steps taken per day are:
 
 ```{r}
 mean(steps_day)
 
 median(steps_day)
-
 ```
 
 ## What is the average daily activity pattern?
 
+Here's a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis):
 
+```{r}
+csv_data2 <- csv_data[!is.na(csv_data$steps),]
+ints <- unique(csv_data2$interval)
+ave_steps_interval <- with(csv_data2, tapply(steps, interval, mean))
+plot(ints, ave_steps_interval, type = "l", 
+     xlab = "5-minutes intervals", 
+     ylab = "Average steps", 
+     main = "Average number of steps taken by interval" )
+```
+
+This is the 5-minute interval, on average across all the days in the dataset, that contains the maximum number of steps:
+
+```{r}
+max_ave_steps <- match(max(ave_steps_interval), ave_steps_interval)
+ints[max_ave_steps]
+```
 
 ## Imputing missing values
 
