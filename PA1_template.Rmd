@@ -8,6 +8,18 @@ output:
 
 ## Loading and preprocessing the data
 
+Unzip the _activity.zip_ file in the _data_ folder:
+
+```{r}
+zip_file <- "activity.zip"
+data_folder <- "data"
+if (dir.exists(data_folder)) {
+  unlink(data_folder, recursive = TRUE)
+}
+
+unzip(zip_file, exdir = data_folder)
+```
+
 
 
 ## What is mean total number of steps taken per day?
