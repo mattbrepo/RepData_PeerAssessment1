@@ -16,15 +16,58 @@ data_folder <- "data"
 if (dir.exists(data_folder)) {
   unlink(data_folder, recursive = TRUE)
 }
-
 unzip(zip_file, exdir = data_folder)
 ```
 
+read the comma-separated-value file named _activity.csv_ from _data_ folder:
 
+```{r}
+csv_file <- "activity.csv"
+csv_data <- read.csv(file.path(data_folder, csv_file), header = TRUE, sep = ",")
+```
+
+change date column:
+
+```{r}
+csv_data$date <- as.Date(csv_data$date, "%Y-%m-%d")
+```
 
 ## What is mean total number of steps taken per day?
 
+For this part of the assignment, we can ignore the missing values in the dataset:
 
+```{r}
+csv_data2 <- csv_data[!is.na(csv_data$steps),]
+```
+
+and if we tranform date into a factor we won't miss any day that doesn't have data:
+
+```{r}
+#%%% csv_data2$date <- factor(csv_data2$date)
+#%%% csv_data2$steps[is.na(csv_data2$steps)] <- 0
+```
+
+let's group the steps by day and calculate the total number of steps taken per day:
+
+```{r}
+steps_day <- with(csv_data2, tapply(steps, date, sum))
+head(steps_day)
+```
+
+Here's the histogram of the total number of steps taken each day:
+
+```{r}
+hist(steps_day, breaks = 10)
+```
+
+The mean and median of the total number of steps taken per day is:
+
+```{r}
+mean(steps_day)
+
+median(steps_day)
+
+```
 
 ## What is the average daily activity pattern?
 
