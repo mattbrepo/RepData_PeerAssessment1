@@ -10,6 +10,7 @@ First of all let's load the needed libraries and set the options' default:
 ```{r}
 library(tidyr)
 library(knitr)
+library(lattice)
 
 opts_chunk$set(echo = TRUE)
 ```
@@ -51,22 +52,22 @@ csv_data2 <- csv_data[!is.na(csv_data$steps),]
 let's group the steps by day and calculate the total number of steps taken per day:
 
 ```{r}
-steps_day <- with(csv_data2, tapply(steps, date, sum))
-head(steps_day)
+tot_steps_day <- with(csv_data2, tapply(steps, date, sum))
+head(tot_steps_day)
 ```
 
 Here's the histogram of the total number of steps taken each day:
 
 ```{r}
-hist(steps_day, xlab = "Steps taken each day", main = "Total number of steps taken each day")
+hist(tot_steps_day, xlab = "Steps taken each day", main = "Total number of steps taken each day")
 ```
 
 The mean and median of the total number of steps taken per day are:
 
 ```{r}
-mean(steps_day)
+mean(tot_steps_day)
 
-median(steps_day)
+median(tot_steps_day)
 ```
 
 ## What is the average daily activity pattern?
@@ -92,6 +93,56 @@ ints[max_ave_steps]
 
 ## Imputing missing values
 
+The total number of missing values in the dataset (i.e. the total number of rows with NAs) is:
 
+```{r}
+sum(is.na(csv_data$steps))
+na_perc <- mean(is.na(csv_data$steps)) * 100
+```
+
+which is the `r na_perc`%.
+
+Let's fill all the NA value with the mean of the interval:
+
+```{r}
+csv_data2 <- data.frame(csv_data)
+na_index <- is.na(csv_data2$steps)
+csv_data2$steps[na_index] <- ave_steps_interval[as.character(csv_data2$interval[na_index])]
+head(csv_data2)
+```
+
+Here's the histogram of the total number of steps taken each day:
+
+```{r}
+tot_steps_day2 <- with(csv_data2, tapply(steps, date, sum))
+hist(tot_steps_day2, xlab = "Steps taken each day", 
+     main = "Total number of steps taken each day (no NAs)", col = c("blue"))
+```
+
+The mean and median of the total number of steps taken per day are:
+
+```{r}
+mean(tot_steps_day2)
+
+median(tot_steps_day2)
+```
+
+These values don't differ much from the estimates from the first part of the assignment. In fact the mean is the same and the variation of the two medians is 1%.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+Let's create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day:
+
+```{r}
+Sys.setlocale("LC_ALL","English")
+csv_data2$day_type <- ifelse(weekdays(csv_data2$date) == "Saturday" | weekdays(csv_data2$date) == "Sunday", "weekend", "weekday")
+```
+
+Here's the plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis):
+
+```{r}
+ave_steps_interval_day_type <- aggregate(steps ~ interval + day_type, 
+                                         csv_data2, mean)
+xyplot(steps ~ interval | day_type, ave_steps_interval_day_type, type = "l",
+       layout = c(1, 2), xlab = "Interval", ylab = "Number of steps")
+```
